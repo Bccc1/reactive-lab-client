@@ -14,7 +14,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 
-import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mihai.dobrescu
@@ -62,6 +63,9 @@ public class ClientEventController {
                 .bodyToFlux(TrackingEvent.class);
 
         trackingEventFlux.log().subscribe(new BaseSubscriber<TrackingEvent>() {
+
+            List<TrackingEvent> buffer = new ArrayList<>();
+
             @Override
             protected void hookOnSubscribe(Subscription subscription) {
                 request(10);
@@ -70,8 +74,12 @@ public class ClientEventController {
             @Override
             protected void hookOnNext(TrackingEvent value) {
                 System.out.println(value);
-                trackingEventClientService.saveEvent(value);
-                request(1);
+                buffer.add(value);
+                if(buffer.size() >= 10){
+                    trackingEventClientService.saveBulkEvents(buffer);
+                    buffer.clear();
+                }
+                request(10);
             }
         });
 

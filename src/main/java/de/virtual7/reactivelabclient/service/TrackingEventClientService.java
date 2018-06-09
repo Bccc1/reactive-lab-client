@@ -8,6 +8,7 @@ import org.springframework.data.cassandra.core.InsertOptions;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Created by mihai.dobrescu
@@ -27,5 +28,9 @@ public class TrackingEventClientService {
 
     public void saveEventTemp(TrackingEvent event){
         this.cassandraOperations.insert(event, InsertOptions.builder().ttl(Duration.ofMillis(1000)).build());
+    }
+
+    public void saveBulkEvents(List<TrackingEvent> events){
+        this.repository.saveAll(events);
     }
 }
